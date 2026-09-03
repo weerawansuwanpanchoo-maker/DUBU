@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DUBU • ระบบจัดการคิวดูดวง</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <div><div class="logo">DUBU</div><div class="subtitle">ระบบจัดการคิวดูดวง</div></div>
+  <button id="bell" class="bell">🔔 <span id="badge">0</span></button>
+</header>
+<main>
+  <section class="hero"><div><p class="eyebrow">TODAY</p><h1>จัดการคิวของคุณ ✨</h1><p>ลงคิว เช็กเวลาว่าง และติดตามลูกค้าได้ในที่เดียว</p></div></section>
+
+  <section class="card">
+    <h2>➕ ลงคิวลูกค้า</h2>
+    <div class="grid">
+      <label>ชื่อลูกค้า<input id="name" placeholder="เช่น คุณเมย์"></label>
+      <label>เบอร์โทร<input id="phone" placeholder="08xxxxxxxx" inputmode="tel"></label>
+      <label>วันที่<input id="date" type="date"></label>
+      <label>เวลา<select id="time"></select></label>
+    </div>
+    <label>หมายเหตุ<textarea id="note" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></label>
+    <button id="add" class="primary">ลงคิว</button>
+  </section>
+
+  <section class="card">
+    <div class="row"><h2>🕐 ตารางคิว</h2><input id="scheduleDate" type="date"></div>
+    <div id="schedule"></div>
+  </section>
+
+  <section class="card">
+    <div class="row"><h2>👥 ฐานข้อมูลลูกค้า</h2><span id="customerCount" class="muted"></span></div>
+    <input id="search" class="search" placeholder="ค้นหาชื่อลูกค้า หรือเบอร์โทร...">
+    <div id="customers"></div>
+  </section>
+</main>
+</div>
+
+<div id="panel" class="panel hidden">
+  <div class="panel-head"><h3>🔔 แจ้งเตือน</h3><button id="close">×</button></div>
+  <div id="notifications"></div>
+</div>
+<div id="toast" class="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
