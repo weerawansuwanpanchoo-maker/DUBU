@@ -3,48 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#7650d9">
 <title>DUBU • ระบบจัดการคิวดูดวง</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app">
+<div id="login" class="login">
+  <div class="login-card">
+    <div class="logo">DUBU</div>
+    <p class="subtitle">ระบบจัดการคิวดูดวง</p>
+    <h2>เข้าสู่ระบบ</h2>
+    <input id="email" type="email" placeholder="อีเมล">
+    <input id="password" type="password" placeholder="รหัสผ่าน">
+    <button id="loginBtn" class="primary">เข้าสู่ระบบ</button>
+    <button id="signupBtn" class="secondary">สร้างบัญชีใหม่</button>
+    <p id="loginMsg" class="msg"></p>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
 <header>
   <div><div class="logo">DUBU</div><div class="subtitle">ระบบจัดการคิวดูดวง</div></div>
-  <button id="bell" class="bell">🔔 <span id="badge">0</span></button>
+  <div class="header-actions"><button id="notifyBtn" class="bell">🔔 <span id="badge">0</span></button><button id="logoutBtn" class="logout">ออก</button></div>
 </header>
 <main>
-  <section class="hero"><div><p class="eyebrow">TODAY</p><h1>จัดการคิวของคุณ ✨</h1><p>ลงคิว เช็กเวลาว่าง และติดตามลูกค้าได้ในที่เดียว</p></div></section>
+<section class="hero"><p class="eyebrow">DUBU</p><h1>จัดการคิวของคุณ ✨</h1><p>ลงคิว เช็กเวลาว่าง และดูข้อมูลลูกค้าได้ในที่เดียว</p></section>
 
-  <section class="card">
-    <h2>➕ ลงคิวลูกค้า</h2>
-    <div class="grid">
-      <label>ชื่อลูกค้า<input id="name" placeholder="เช่น คุณเมย์"></label>
-      <label>เบอร์โทร<input id="phone" placeholder="08xxxxxxxx" inputmode="tel"></label>
-      <label>วันที่<input id="date" type="date"></label>
-      <label>เวลา<select id="time"></select></label>
-    </div>
-    <label>หมายเหตุ<textarea id="note" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></label>
-    <button id="add" class="primary">ลงคิว</button>
-  </section>
+<section class="card">
+<h2>➕ ลงคิวลูกค้า</h2>
+<div class="grid">
+<label>ชื่อลูกค้า<input id="name" placeholder="เช่น คุณเมย์"></label>
+<label>เบอร์โทร<input id="phone" placeholder="08xxxxxxxx" inputmode="tel"></label>
+<label>วันที่<input id="date" type="date"></label>
+<label>เวลา<select id="time"></select></label>
+</div>
+<label>หมายเหตุ<textarea id="note" placeholder="รายละเอียดเพิ่มเติม"></textarea></label>
+<button id="add" class="primary">ลงคิว</button>
+</section>
 
-  <section class="card">
-    <div class="row"><h2>🕐 ตารางคิว</h2><input id="scheduleDate" type="date"></div>
-    <div id="schedule"></div>
-  </section>
+<section class="card">
+<div class="row"><h2>🕐 ตารางคิว</h2><input id="scheduleDate" type="date"></div>
+<div id="schedule"></div>
+</section>
 
-  <section class="card">
-    <div class="row"><h2>👥 ฐานข้อมูลลูกค้า</h2><span id="customerCount" class="muted"></span></div>
-    <input id="search" class="search" placeholder="ค้นหาชื่อลูกค้า หรือเบอร์โทร...">
-    <div id="customers"></div>
-  </section>
+<section class="card">
+<div class="row"><h2>👥 ฐานข้อมูลลูกค้า</h2><span id="customerCount" class="muted"></span></div>
+<input id="search" class="search" placeholder="ค้นหาชื่อลูกค้า หรือเบอร์โทร...">
+<div id="customers"></div>
+</section>
 </main>
 </div>
 
 <div id="panel" class="panel hidden">
-  <div class="panel-head"><h3>🔔 แจ้งเตือน</h3><button id="close">×</button></div>
-  <div id="notifications"></div>
+<div class="panel-head"><h3>🔔 แจ้งเตือน</h3><button id="close">×</button></div>
+<div id="notifications"></div>
 </div>
 <div id="toast" class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
