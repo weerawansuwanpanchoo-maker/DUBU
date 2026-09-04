@@ -48,7 +48,7 @@
     <div id="calendarGrid" class="calendar-grid"></div>
   </section>
   <section class="card">
-    <div class="selected-day"><div><div class="eyebrow">SELECTED DATE</div><h2 id="selectedDateTitle"></h2></div><button id="freeOnlyBtn" class="secondary mini">🔮 ดูเฉพาะเวลาว่าง</button></div>
+    <div class="selected-day"><div><div class="eyebrow">SELECTED DATE</div><h2 id="selectedDateTitle"></h2></div><div class="day-actions"><button id="freeOnlyBtn" class="secondary mini">🔮 ดูเฉพาะเวลาว่าง</button><button id="shareScheduleBtn" class="primary mini">📤 ส่งตารางให้ลูกค้า</button></div></div>
     <div id="slots"></div>
   </section>
 </section>
@@ -85,6 +85,7 @@
 <div id="toast" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>')}</script>
 <script src="config.js"></script>
 <script src="app.js"></script>
 </body></html>

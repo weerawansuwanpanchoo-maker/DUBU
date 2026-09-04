@@ -1,4 +1,12 @@
-const supabaseClient=window.supabase.createClient(DUBU_CONFIG.SUPABASE_URL,DUBU_CONFIG.SUPABASE_PUBLISHABLE_KEY);
+let supabaseClient=null;
+function setLoginMsg(t){const el=$("loginMsg");if(el){el.textContent=t;el.style.display="block"}}
+try{
+  if(!window.supabase) throw new Error("ไม่พบ Supabase library");
+  if(!window.DUBU_CONFIG?.SUPABASE_URL||!window.DUBU_CONFIG?.SUPABASE_PUBLISHABLE_KEY) throw new Error("ไม่พบการตั้งค่า Supabase");
+  supabaseClient=window.supabase.createClient(DUBU_CONFIG.SUPABASE_URL,DUBU_CONFIG.SUPABASE_PUBLISHABLE_KEY);
+}catch(e){
+  console.error("DUBU init error",e);
+}
 let currentUser=null,bookings=[],customers=[],services=[],range="day",statusFilter="all",selectedDate=localISO(),viewMonth=new Date();
 const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 function localISO(d=new Date()){const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)}
@@ -50,6 +58,44 @@ function renderSlots(){
 }
 $("prevMonth").onclick=()=>{viewMonth.setMonth(viewMonth.getMonth()-1);renderCalendar()};$("nextMonth").onclick=()=>{viewMonth.setMonth(viewMonth.getMonth()+1);renderCalendar()};
 $("freeOnlyBtn").onclick=()=>{const day=bookings.filter(b=>b.date===selectedDate&&b.status!=="cancelled");const free=times.filter(t=>!day.some(b=>b.time===t));openModal(`<h2>🔮 เวลาว่าง ${fmtShort(selectedDate)}</h2><p class="muted">ส่งหน้านี้ให้ลูกค้าเลือกเวลาได้</p><div>${free.map(t=>`<span class="badge free" style="margin:4px">${t}</span>`).join("")||"ไม่มีเวลาว่าง"}</div>`)}
+
+function buildScheduleText(date){
+ const day=bookings.filter(b=>b.date===date&&b.status!=="cancelled");
+ const busy=new Set(day.map(b=>b.time));
+ const rows=[];
+ for(let i=0;i<times.length;i+=2){
+   const a=times[i],b=times[i+1];
+   rows.push(`${a} ${busy.has(a)?"🔴":"🟢"}  |  ${b} ${busy.has(b)?"🔴":"🟢"}`);
+ }
+ return `🔮 DUBU ตารางคิว\n📅 ${fmtDate(date)}\n🟢 ว่าง   🔴 ไม่ว่าง\n\n${rows.join("\\n")}`;
+}
+function openScheduleShare(date=selectedDate){
+ const day=bookings.filter(b=>b.date===date&&b.status!=="cancelled");
+ const busy=new Set(day.map(b=>b.time));
+ const grid=times.map(t=>`<div class="share-slot ${busy.has(t)?"busy":"free"}"><b>${t}</b><span>${busy.has(t)?"🔴 ไม่ว่าง":"🟢 ว่าง"}</span></div>`).join("");
+ openModal(`<h2>📤 ตารางสำหรับส่งลูกค้า</h2><p class="muted">${fmtDate(date)}</p><div class="share-legend"><span class="badge free">🟢 ว่าง</span><span class="badge busy">🔴 ไม่ว่าง</span></div><div class="share-summary-grid">${grid}</div><p class="share-note">แสดงเฉพาะเวลาและสถานะ ไม่แสดงข้อมูลลูกค้า</p><div class="modal-actions"><button id="copyScheduleBtn" class="secondary">📋 คัดลอกข้อความ</button><button id="nativeShareBtn" class="primary">📤 แชร์ให้ลูกค้า</button></div>`);
+ $("copyScheduleBtn").onclick=()=>copyScheduleText(date);
+ $("nativeShareBtn").onclick=()=>shareScheduleText(date);
+}
+async function copyScheduleText(date=selectedDate){
+ const text=buildScheduleText(date);
+ try{
+   await navigator.clipboard.writeText(text);
+   toast("คัดลอกตารางแล้ว ✓");
+ }catch(e){
+   openModal(`<h2>📋 ข้อความตารางคิว</h2><textarea class="share-textarea" readonly>${esc(text)}</textarea><p class="muted">กดค้างที่ข้อความเพื่อคัดลอก</p>`);
+ }
+}
+async function shareScheduleText(date=selectedDate){
+ const text=buildScheduleText(date);
+ if(navigator.share){
+   try{await navigator.share({title:"DUBU ตารางคิว",text});}catch(e){}
+ }else{
+   await copyScheduleText(date);
+ }
+}
+$("shareScheduleBtn").onclick=()=>openScheduleShare(selectedDate);
+
 function renderQueue(){
  $("queueDate").value=selectedDate;const day=bookings.filter(b=>b.date===selectedDate&&b.status!=="cancelled").sort((a,b)=>timeToMin(a.time)-timeToMin(b.time));const counts={waiting:0,doing:0,done:0};day.forEach(b=>counts[b.status||"waiting"]++);
  $("queueSummary").innerHTML=`<span class="summary-pill">ทั้งหมด ${day.length}</span><span class="summary-pill">รอคิว ${counts.waiting}</span><span class="summary-pill">กำลังดู ${counts.doing}</span><span class="summary-pill">เสร็จแล้ว ${counts.done}</span><span class="summary-pill">รายรับ ${baht(day.filter(b=>b.payment_status==="paid").reduce((a,b)=>a+priceOf(b),0))}</span>`;
@@ -117,9 +163,33 @@ document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>openAdd());
 $("notifyBtn").onclick=()=>{$("panel").classList.toggle("hidden");renderNotifications()};$("panelClose").onclick=()=>$("panel").classList.add("hidden");
 function renderNotifications(){const day=todayBookings().filter(b=>b.status!=="done"&&b.status!=="cancelled");$("badge").textContent=day.length;$("notifications").innerHTML=day.length?day.map(b=>`<div class="notice">🔔 <b>${b.time} ${esc(b.customer_name)}</b><br>${esc(serviceName(b))} · ${baht(priceOf(b))}</div>`).join(""):'<div class="muted">ไม่มีแจ้งเตือน</div>'}
 $("settingsBtn").onclick=()=>openModal(`<h2>⚙️ ตั้งค่า</h2><div class="notice">บัญชี: ${esc(currentUser?.email||"-")}</div><h3>🔮 บริการ</h3><div class="muted">จัดการบริการและราคาได้จากฐานข้อมูลของ DUBU</div><h3>⏰ เวลา</h3><div class="muted">ระบบเปิดให้ลงคิวได้ตลอด 24 ชั่วโมง และตารางจะแสดงทุก 30 นาที</div><div class="modal-actions"><button class="danger" onclick="supabaseClient.auth.signOut()">ออกจากระบบ</button></div>`);
-$("loginBtn").onclick=async()=>{const email=$("email").value.trim(),password=$("password").value;const r=await supabaseClient.auth.signInWithPassword({email,password});if(r.error)$("loginMsg").textContent="เข้าสู่ระบบไม่สำเร็จ: "+r.error.message};
-$("signupBtn").onclick=async()=>{const email=$("email").value.trim(),password=$("password").value;if(password.length<6)return $("loginMsg").textContent="รหัสผ่านอย่างน้อย 6 ตัวอักษร";const r=await supabaseClient.auth.signUp({email,password});$("loginMsg").textContent=r.error?r.error.message:"สมัครสำเร็จแล้ว"};
-supabaseClient.auth.onAuthStateChange((e,s)=>s?showApp(s.user):showLogin());
+$("loginBtn").onclick=async()=>{
+  const email=$("email").value.trim(),password=$("password").value;
+  setLoginMsg("");
+  if(!supabaseClient)return setLoginMsg("ระบบยังโหลดไม่ครบ กรุณารีโหลดหน้าเว็บอีกครั้ง");
+  if(!email||!password)return setLoginMsg("กรุณากรอกอีเมลและรหัสผ่าน");
+  const btn=$("loginBtn");btn.disabled=true;btn.textContent="กำลังเข้าสู่ระบบ...";
+  try{
+    const r=await supabaseClient.auth.signInWithPassword({email,password});
+    if(r.error)setLoginMsg("เข้าสู่ระบบไม่สำเร็จ: "+r.error.message);
+  }catch(e){setLoginMsg("เชื่อมต่อระบบไม่ได้: "+(e?.message||e));}
+  finally{btn.disabled=false;btn.textContent="เข้าสู่ระบบ";}
+};
+$("signupBtn").onclick=async()=>{
+  const email=$("email").value.trim(),password=$("password").value;
+  if(!supabaseClient)return setLoginMsg("ระบบยังโหลดไม่ครบ กรุณารีโหลดหน้าเว็บอีกครั้ง");
+  if(password.length<6)return setLoginMsg("รหัสผ่านอย่างน้อย 6 ตัวอักษร");
+  try{const r=await supabaseClient.auth.signUp({email,password});setLoginMsg(r.error?r.error.message:"สมัครสำเร็จแล้ว")}catch(e){setLoginMsg(e?.message||String(e))}
+};
+if(publicMode){
+  if(supabaseClient)initPublicSchedule();
+  else {$("publicSchedule").classList.remove("hidden");$("login").classList.add("hidden");$("app").classList.add("hidden");$("publicMsg").textContent="ระบบยังโหลดไม่ครบ กรุณารีโหลดหน้าเว็บอีกครั้ง";}
+}else if(supabaseClient){
+  supabaseClient.auth.onAuthStateChange((e,s)=>s?showApp(s.user):showLogin());
+}else{
+  showLogin();
+  setLoginMsg("ระบบยังโหลดไม่ครบ กรุณารีโหลดหน้าเว็บอีกครั้ง");
+}
 async function showApp(u){currentUser=u;$("login").classList.add("hidden");$("app").classList.remove("hidden");await loadData()}
 function showLogin(){currentUser=null;$("app").classList.add("hidden");$("login").classList.remove("hidden")}
 showLogin();
