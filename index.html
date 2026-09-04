@@ -2,19 +2,20 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="theme-color" content="#7650d9">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#7b2cbf">
 <title>DUBU • ระบบจัดการคิวดูดวง</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div id="login" class="login">
   <div class="login-card">
-    <div class="logo">DUBU</div>
+    <div class="orb">🔮</div><div class="logo">DUBU</div>
     <p class="subtitle">ระบบจัดการคิวดูดวง</p>
     <h2>เข้าสู่ระบบ</h2>
-    <input id="email" type="email" placeholder="อีเมล">
-    <input id="password" type="password" placeholder="รหัสผ่าน">
+    <input id="email" type="email" placeholder="อีเมล" autocomplete="email">
+    <input id="password" type="password" placeholder="รหัสผ่าน" autocomplete="current-password">
     <button id="loginBtn" class="primary">เข้าสู่ระบบ</button>
     <button id="signupBtn" class="secondary">สร้างบัญชีใหม่</button>
     <p id="loginMsg" class="msg"></p>
@@ -22,45 +23,68 @@
 </div>
 
 <div id="app" class="app hidden">
-<header>
-  <div><div class="logo">DUBU</div><div class="subtitle">ระบบจัดการคิวดูดวง</div></div>
-  <div class="header-actions"><button id="notifyBtn" class="bell">🔔 <span id="badge">0</span></button><button id="logoutBtn" class="logout">ออก</button></div>
+<header class="topbar">
+  <div class="brand"><span class="brand-orb">🔮</span><div><div class="logo small">DUBU</div><div class="subtitle">ระบบจัดการคิวดูดวง</div></div></div>
+  <div class="top-actions"><button id="notifyBtn" class="icon-btn" title="แจ้งเตือน">🔔<span id="badge">0</span></button><button id="settingsBtn" class="icon-btn" title="ตั้งค่า">⚙️</button></div>
 </header>
+
 <main>
-<section class="hero"><p class="eyebrow">DUBU</p><h1>จัดการคิวของคุณ ✨</h1><p>ลงคิว เช็กเวลาว่าง และดูข้อมูลลูกค้าได้ในที่เดียว</p></section>
-
-<section class="card">
-<h2>➕ ลงคิวลูกค้า</h2>
-<div class="grid">
-<label>ชื่อลูกค้า<input id="name" placeholder="เช่น คุณเมย์"></label>
-<label>เบอร์โทร<input id="phone" placeholder="08xxxxxxxx" inputmode="tel"></label>
-<label>วันที่<input id="date" type="date"></label>
-<label>เวลา<select id="time"></select></label>
-</div>
-<label>หมายเหตุ<textarea id="note" placeholder="รายละเอียดเพิ่มเติม"></textarea></label>
-<button id="add" class="primary">ลงคิว</button>
+<section id="page-home" class="page">
+  <div class="hero"><div><div class="eyebrow">WELCOME TO DUBU</div><h1>วันนี้ของคุณ ✨</h1><p id="todayLabel"></p></div><button class="primary compact" data-add>＋ เพิ่มคิว</button></div>
+  <div class="stats">
+    <div class="stat"><span>คิววันนี้</span><b id="homeCount">0</b><small>รายการ</small></div>
+    <div class="stat"><span>รายรับวันนี้</span><b id="homeRevenue">฿0</b><small id="homePaid">ชำระแล้ว ฿0</small></div>
+    <div class="stat"><span>คิวถัดไป</span><b id="homeNext">—</b><small id="homeNextName">ยังไม่มีคิว</small></div>
+  </div>
+  <section class="card"><div class="section-title"><h2>🔔 แจ้งเตือนใกล้ถึงเวลา</h2><button class="text-btn" data-page="queue">ดูคิวทั้งหมด</button></div><div id="homeAlerts"></div></section>
+  <section class="card"><div class="section-title"><h2>🔮 คิววันนี้</h2><button class="primary mini" data-add>＋ เพิ่มคิว</button></div><div id="homeQueue"></div></section>
 </section>
 
-<section class="card">
-<div class="row"><h2>🕐 ตารางคิว</h2><input id="scheduleDate" type="date"></div>
-<div id="schedule"></div>
+<section id="page-calendar" class="page hidden">
+  <div class="page-head"><div><div class="eyebrow">SCHEDULE</div><h1>📅 ตารางคิว</h1><p>ดูภาพรวมทั้งเดือนและเวลาว่างแบบเรียลไทม์</p></div><button class="primary compact" data-add>＋ เพิ่มคิว</button></div>
+  <section class="card calendar-card">
+    <div class="calendar-head"><button class="round" id="prevMonth">‹</button><h2 id="monthTitle"></h2><button class="round" id="nextMonth">›</button></div>
+    <div class="weekdays"><span>อา</span><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span>ส</span></div>
+    <div id="calendarGrid" class="calendar-grid"></div>
+  </section>
+  <section class="card">
+    <div class="selected-day"><div><div class="eyebrow">SELECTED DATE</div><h2 id="selectedDateTitle"></h2></div><button id="freeOnlyBtn" class="secondary mini">🔮 ดูเฉพาะเวลาว่าง</button></div>
+    <div id="slots"></div>
+  </section>
 </section>
 
-<section class="card">
-<div class="row"><h2>👥 ฐานข้อมูลลูกค้า</h2><span id="customerCount" class="muted"></span></div>
-<input id="search" class="search" placeholder="ค้นหาชื่อลูกค้า หรือเบอร์โทร...">
-<div id="customers"></div>
+<section id="page-queue" class="page hidden">
+  <div class="page-head"><div><div class="eyebrow">QUEUE</div><h1>🔮 คิว</h1><p>จัดการคิวของวันที่เลือกแบบละเอียด</p></div><button class="primary compact" data-add>＋ เพิ่มคิว</button></div>
+  <section class="card"><div class="filter-row"><button id="queuePrev" class="round">‹</button><input id="queueDate" type="date"><button id="queueNext" class="round">›</button></div><div class="queue-summary" id="queueSummary"></div><div class="chips" id="statusChips"></div><div id="queueList"></div></section>
+</section>
+
+<section id="page-customers" class="page hidden">
+  <div class="page-head"><div><div class="eyebrow">CUSTOMERS</div><h1>👥 ลูกค้า</h1><p>ฐานข้อมูลและประวัติการดูดวง</p></div><button id="addCustomerBtn" class="primary compact">＋ เพิ่มลูกค้า</button></div>
+  <section class="card"><div class="search-wrap">🔍<input id="customerSearch" placeholder="ค้นหาชื่อลูกค้า หรือเบอร์โทร..."></div><div class="customer-count" id="customerCount"></div><div id="customerList"></div></section>
+</section>
+
+<section id="page-revenue" class="page hidden">
+  <div class="page-head"><div><div class="eyebrow">REVENUE</div><h1>💵 รายรับ</h1><p>ดูรายรับรายวัน รายเดือน และสถานะการชำระเงิน</p></div></div>
+  <section class="revenue-tabs"><button class="active" data-range="day">วันนี้</button><button data-range="week">7 วัน</button><button data-range="month">เดือนนี้</button><button data-range="all">ทั้งหมด</button></section>
+  <div class="stats revenue-stats"><div class="stat"><span>รายรับทั้งหมด</span><b id="revTotal">฿0</b></div><div class="stat"><span>ชำระแล้ว</span><b id="revPaid">฿0</b></div><div class="stat"><span>ยังไม่ชำระ</span><b id="revUnpaid">฿0</b></div><div class="stat"><span>จำนวนคิว</span><b id="revCount">0</b></div></div>
+  <section class="card"><h2>📅 รายรับแยกตามวัน</h2><div id="revenueDays"></div></section>
 </section>
 </main>
+
+<nav class="bottom-nav">
+<button class="active" data-page="home">🏠<span>หน้าหลัก</span></button>
+<button data-page="calendar">📅<span>ตารางคิว</span></button>
+<button data-page="queue">🔮<span>คิว</span></button>
+<button data-page="customers">👥<span>ลูกค้า</span></button>
+<button data-page="revenue">💵<span>รายรับ</span></button>
+</nav>
 </div>
 
-<div id="panel" class="panel hidden">
-<div class="panel-head"><h3>🔔 แจ้งเตือน</h3><button id="close">×</button></div>
-<div id="notifications"></div>
-</div>
+<div id="modal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="modalClose">×</button><div id="modalContent"></div></div></div>
+<div id="panel" class="side-panel hidden"><div class="section-title"><h2>🔔 แจ้งเตือน</h2><button class="modal-close" id="panelClose">×</button></div><div id="notifications"></div></div>
 <div id="toast" class="toast"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="app.js"></script>
-</body>
-</html>
+</body></html>
