@@ -181,10 +181,7 @@ $("signupBtn").onclick=async()=>{
   if(password.length<6)return setLoginMsg("รหัสผ่านอย่างน้อย 6 ตัวอักษร");
   try{const r=await supabaseClient.auth.signUp({email,password});setLoginMsg(r.error?r.error.message:"สมัครสำเร็จแล้ว")}catch(e){setLoginMsg(e?.message||String(e))}
 };
-if(publicMode){
-  if(supabaseClient)initPublicSchedule();
-  else {$("publicSchedule").classList.remove("hidden");$("login").classList.add("hidden");$("app").classList.add("hidden");$("publicMsg").textContent="ระบบยังโหลดไม่ครบ กรุณารีโหลดหน้าเว็บอีกครั้ง";}
-}else if(supabaseClient){
+if(supabaseClient){
   supabaseClient.auth.onAuthStateChange((e,s)=>s?showApp(s.user):showLogin());
 }else{
   showLogin();
